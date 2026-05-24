@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Finans">
+<meta name="theme-color" content="#0a0a0a">
+<title>Finans Takip</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0a;
+  --bg2: #141414;
+  --bg3: #1e1e1e;
+  --bg4: #282828;
+  --border: #2a2a2a;
+  --border2: #3a3a3a;
+  --text: #f0f0f0;
+  --text2: #888;
+  --text3: #555;
+  --green: #22c55e;
+  --green-bg: #0d2818;
+  --red: #ef4444;
+  --red-bg: #2a0f0f;
+  --blue: #3b82f6;
+  --blue-bg: #0f1e3a;
+  --amber: #f59e0b;
+  --amber-bg: #2a1f0a;
+  --purple: #a855f7;
+  --purple-bg: #1e0f2a;
+  --accent: #22c55e;
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 15px; overflow-x: hidden; }
+.app { max-width: 480px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; }
+
+/* Header */
+.header { padding: 56px 20px 20px; background: var(--bg); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; backdrop-filter: blur(20px); }
+.header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.header h1 { font-size: 13px; font-weight: 500; color: var(--text2); letter-spacing: 0.08em; text-transform: uppercase; }
+.month-nav { display: flex; align-items: center; gap: 12px; }
+.month-btn { background: none; border: none; color: var(--text2); cursor: pointer; font-size: 18px; padding: 4px; }
+.month-label { font-size: 13px; font-weight: 500; color: var(--text); min-width: 100px; text-align: center; font-family: 'DM Mono', monospace; }
+
+/* Net Balance */
+.balance-card { margin: 16px 20px; background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
+.balance-label { font-size: 12px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+.balance-amount { font-size: 36px; font-weight: 300; font-family: 'DM Mono', monospace; letter-spacing: -1px; }
+.balance-amount.positive { color: var(--green); }
+.balance-amount.negative { color: var(--red); }
+.balance-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+.balance-sub { background: var(--bg3); border-radius: var(--radius-sm); padding: 12px; }
+.balance-sub-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+.balance-sub-val { font-size: 16px; font-weight: 500; font-family: 'DM Mono', monospace; }
+.income-val { color: var(--green); }
+.expense-val { color: var(--red); }
+
+/* Tabs */
+.tabs { display: flex; padding: 0 20px; gap: 4px; margin: 8px 0; overflow-x: auto; scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab { padding: 7px 14px; border-radius: 20px; font-size: 13px; font-weight: 500; cursor: pointer; border: 1px solid transparent; white-space: nowrap; transition: all 0.2s; color: var(--text2); background: none; }
+.tab.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+.tab:not(.active):hover { color: var(--text); border-color: var(--border2); }
+
+/* Content */
+.content { flex: 1; padding: 0 20px 100px; overflow-y: auto; }
+.section-title { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.1em; margin: 20px 0 10px; }
+
+/* Transaction items */
+.tx-group { margin-bottom: 20px; }
+.tx-date { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.08em; }
+.tx-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 6px; cursor: pointer; transition: border-color 0.15s; }
+.tx-item:hover { border-color: var(--border2); }
+.tx-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+.tx-info { flex: 1; min-width: 0; }
+.tx-name { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tx-cat { font-size: 12px; color: var(--text3); margin-top: 2px; }
+.tx-amount { font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 500; flex-shrink: 0; }
+.tx-amount.income { color: var(--green); }
+.tx-amount.expense { color: var(--text); }
+.tx-del { background: none; border: none; color: var(--text3); cursor: pointer; padding: 4px; font-size: 16px; opacity: 0; transition: opacity 0.15s; }
+.tx-item:hover .tx-del { opacity: 1; }
+
+/* Category colors */
+.cat-yiyecek { background: #1a2e1a; }
+.cat-ulasim { background: #1a1e2e; }
+.cat-fatura { background: #2e2a1a; }
+.cat-eglence { background: #2e1a2e; }
+.cat-saglik { background: #1a2e2e; }
+.cat-giyim { background: #2e1e1a; }
+.cat-egitim { background: #1a2a1a; }
+.cat-kira { background: #2a1a2e; }
+.cat-taksit { background: #2e2020; }
+.cat-vergi { background: #202020; }
+.cat-okul { background: #1a2520; }
+.cat-diger { background: #222; }
+.cat-gelir { background: #0d2818; }
+
+/* FAB */
+.fab { position: fixed; bottom: 24px; right: 50%; transform: translateX(50%); max-width: 480px; width: calc(100% - 40px); display: flex; gap: 8px; z-index: 200; }
+.fab-main { flex: 1; height: 52px; background: var(--accent); color: var(--bg); border: none; border-radius: 26px; font-size: 15px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.15s, opacity 0.15s; font-family: 'DM Sans', sans-serif; }
+.fab-main:active { transform: scale(0.97); opacity: 0.9; }
+.fab-mic { width: 52px; height: 52px; background: var(--bg3); border: 1px solid var(--border2); color: var(--text); border-radius: 50%; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+.fab-mic.listening { background: var(--red); border-color: var(--red); animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.4)} 50%{box-shadow:0 0 0 8px rgba(239,68,68,0)} }
+
+/* Modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 300; display: none; align-items: flex-end; backdrop-filter: blur(4px); }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--bg2); border: 1px solid var(--border); border-radius: 20px 20px 0 0; padding: 20px; width: 100%; max-width: 480px; margin: 0 auto; max-height: 90vh; overflow-y: auto; }
+.modal-handle { width: 36px; height: 4px; background: var(--border2); border-radius: 2px; margin: 0 auto 20px; }
+.modal-title { font-size: 17px; font-weight: 600; margin-bottom: 20px; }
+.form-group { margin-bottom: 14px; }
+.form-label { font-size: 12px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; display: block; }
+.form-input { width: 100%; height: 46px; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 15px; padding: 0 14px; font-family: 'DM Sans', sans-serif; outline: none; transition: border-color 0.15s; }
+.form-input:focus { border-color: var(--accent); }
+.form-select { width: 100%; height: 46px; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 15px; padding: 0 14px; font-family: 'DM Sans', sans-serif; outline: none; appearance: none; }
+.type-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 16px; }
+.type-btn { height: 42px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: none; color: var(--text2); font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.15s; font-family: 'DM Sans', sans-serif; }
+.type-btn.active.expense { background: var(--red-bg); border-color: var(--red); color: var(--red); }
+.type-btn.active.income { background: var(--green-bg); border-color: var(--green); color: var(--green); }
+.submit-btn { width: 100%; height: 50px; background: var(--accent); color: var(--bg); border: none; border-radius: var(--radius); font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 6px; font-family: 'DM Sans', sans-serif; transition: opacity 0.15s; }
+.submit-btn:active { opacity: 0.85; }
+.cancel-btn { width: 100%; height: 44px; background: none; color: var(--text2); border: none; font-size: 15px; cursor: pointer; margin-top: 8px; font-family: 'DM Sans', sans-serif; }
+
+/* Camera/Upload */
+.upload-area { border: 1px dashed var(--border2); border-radius: var(--radius); padding: 32px; text-align: center; cursor: pointer; transition: border-color 0.15s; margin-bottom: 14px; }
+.upload-area:hover { border-color: var(--accent); }
+.upload-icon { font-size: 32px; margin-bottom: 8px; }
+.upload-text { font-size: 14px; color: var(--text2); }
+.upload-sub { font-size: 12px; color: var(--text3); margin-top: 4px; }
+.scan-result { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; color: var(--text2); }
+
+/* CSV Upload */
+.csv-area { border: 1px dashed var(--border2); border-radius: var(--radius); padding: 24px; text-align: center; cursor: pointer; margin-bottom: 14px; }
+.csv-result { max-height: 200px; overflow-y: auto; }
+.csv-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.csv-row:last-child { border-bottom: none; }
+.csv-check { width: 18px; height: 18px; border-radius: 4px; border: 1px solid var(--border2); display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+.csv-check.checked { background: var(--accent); border-color: var(--accent); color: var(--bg); font-size: 11px; }
+
+/* Charts */
+.chart-wrap { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
+.chart-title { font-size: 12px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 14px; }
+.bar-chart { display: flex; flex-direction: column; gap: 8px; }
+.bar-row { display: flex; align-items: center; gap: 10px; }
+.bar-label { font-size: 12px; color: var(--text2); width: 70px; flex-shrink: 0; text-align: right; }
+.bar-track { flex: 1; height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 3px; transition: width 0.6s cubic-bezier(0.4,0,0.2,1); }
+.bar-val { font-size: 12px; font-family: 'DM Mono', monospace; color: var(--text2); width: 70px; flex-shrink: 0; }
+
+/* AI Chat */
+.ai-wrap { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
+.ai-messages { max-height: 300px; overflow-y: auto; margin-bottom: 12px; display: flex; flex-direction: column; gap: 10px; }
+.ai-msg { padding: 10px 14px; border-radius: 12px; font-size: 14px; line-height: 1.6; max-width: 85%; }
+.ai-msg.user { background: var(--accent); color: var(--bg); align-self: flex-end; border-radius: 12px 12px 2px 12px; }
+.ai-msg.assistant { background: var(--bg3); color: var(--text); align-self: flex-start; border-radius: 12px 12px 12px 2px; }
+.ai-msg.loading { color: var(--text3); font-style: italic; }
+.ai-input-row { display: flex; gap: 8px; }
+.ai-input { flex: 1; height: 42px; background: var(--bg3); border: 1px solid var(--border); border-radius: 21px; color: var(--text); font-size: 14px; padding: 0 16px; font-family: 'DM Sans', sans-serif; outline: none; }
+.ai-input:focus { border-color: var(--accent); }
+.ai-send { width: 42px; height: 42px; background: var(--accent); color: var(--bg); border: none; border-radius: 50%; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+/* Taksit/Borç cards */
+.debt-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 10px; }
+.debt-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.debt-name { font-size: 15px; font-weight: 500; }
+.debt-badge { font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 500; }
+.debt-progress { height: 4px; background: var(--bg3); border-radius: 2px; overflow: hidden; margin-bottom: 8px; }
+.debt-prog-fill { height: 100%; background: var(--accent); border-radius: 2px; }
+.debt-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--text3); font-family: 'DM Mono', monospace; }
+
+/* Summary stats */
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px; }
+.stat-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+.stat-val { font-size: 20px; font-weight: 500; font-family: 'DM Mono', monospace; }
+
+/* Voice status */
+.voice-status { background: var(--red-bg); border: 1px solid var(--red); border-radius: var(--radius-sm); padding: 10px 14px; font-size: 13px; color: var(--red); margin-bottom: 10px; display: none; align-items: center; gap: 8px; }
+.voice-status.active { display: flex; }
+.voice-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red); animation: pulse 1s infinite; }
+
+/* Empty state */
+.empty { text-align: center; padding: 40px 20px; }
+.empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.3; }
+.empty-text { font-size: 14px; color: var(--text3); }
+
+/* Toast */
+.toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); background: var(--bg3); border: 1px solid var(--border2); border-radius: var(--radius-sm); padding: 10px 16px; font-size: 13px; z-index: 999; opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap; }
+.toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="header-top">
+      <h1>Finans Takip</h1>
+      <div class="month-nav">
+        <button class="month-btn" onclick="changeMonth(-1)">‹</button>
+        <div class="month-label" id="monthLabel"></div>
+        <button class="month-btn" onclick="changeMonth(1)">›</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="balance-card">
+    <div class="balance-label">Net Bakiye</div>
+    <div class="balance-amount" id="netBalance">₺0</div>
+    <div class="balance-row">
+      <div class="balance-sub">
+        <div class="balance-sub-label">Gelir</div>
+        <div class="balance-sub-val income-val" id="totalIncome">₺0</div>
+      </div>
+      <div class="balance-sub">
+        <div class="balance-sub-label">Gider</div>
+        <div class="balance-sub-val expense-val" id="totalExpense">₺0</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('transactions', this)">Hareketler</button>
+    <button class="tab" onclick="switchTab('debts', this)">Taksit & Borç</button>
+    <button class="tab" onclick="switchTab('charts', this)">Grafikler</button>
+    <button class="tab" onclick="switchTab('ai', this)">Claude AI</button>
+    <button class="tab" onclick="switchTab('import', this)">İçe Aktar</button>
+  </div>
+
+  <div class="content">
+    <!-- Transactions Tab -->
+    <div id="tab-transactions">
+      <div class="voice-status" id="voiceStatus">
+        <div class="voice-dot"></div>
+        <span id="voiceText">Dinliyorum...</span>
+      </div>
+      <div id="txList"></div>
+    </div>
+
+    <!-- Debts Tab -->
+    <div id="tab-debts" style="display:none">
+      <div class="section-title">Taksitler & Krediler</div>
+      <div id="debtList"></div>
+      <button onclick="openDebtModal()" style="width:100%;height:44px;background:var(--bg2);border:1px dashed var(--border2);border-radius:var(--radius);color:var(--text2);font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:8px;">+ Taksit / Borç Ekle</button>
+    </div>
+
+    <!-- Charts Tab -->
+    <div id="tab-charts" style="display:none">
+      <div class="stats-grid" id="statsGrid"></div>
+      <div class="chart-wrap">
+        <div class="chart-title">Kategoriye Göre Gider</div>
+        <div class="bar-chart" id="catBars"></div>
+      </div>
+      <div class="chart-wrap">
+        <div class="chart-title">Son 6 Ay</div>
+        <div class="bar-chart" id="monthBars"></div>
+      </div>
+    </div>
+
+    <!-- AI Tab -->
+    <div id="tab-ai" style="display:none">
+      <div class="ai-wrap">
+        <div class="ai-messages" id="aiMessages">
+          <div class="ai-msg assistant">Merhaba! Harcamalarını analiz etmemi ister misin? Sana bütçe önerileri, tasarruf ipuçları veya harcama raporu hazırlayabilirim.</div>
+        </div>
+        <div class="ai-input-row">
+          <input class="ai-input" id="aiInput" placeholder="Bir şey sor..." onkeydown="if(event.key==='Enter')sendAI()">
+          <button class="ai-send" onclick="sendAI()">↑</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Import Tab -->
+    <div id="tab-import" style="display:none">
+      <div class="section-title">Fiş / Fatura Tara</div>
+      <div class="upload-area" onclick="document.getElementById('receiptInput').click()">
+        <div class="upload-icon">📷</div>
+        <div class="upload-text">Fotoğraf çek veya seç</div>
+        <div class="upload-sub">Fiş, fatura, makbuz</div>
+      </div>
+      <input type="file" id="receiptInput" accept="image/*" capture="environment" style="display:none" onchange="scanReceipt(this)">
+      <div class="scan-result" id="scanResult" style="display:none"></div>
+
+      <div class="section-title" style="margin-top:24px">Banka Ekstresi Yükle</div>
+      <div class="upload-area" onclick="document.getElementById('pdfInput').click()">
+        <div class="upload-icon">📄</div>
+        <div class="upload-text">PDF ekstre yükle</div>
+        <div class="upload-sub">Yapıkredi, Halkbank PDF ekstresi</div>
+      </div>
+      <input type="file" id="pdfInput" accept=".pdf" style="display:none" onchange="importPDF(this)">
+      <div class="scan-result" id="pdfStatus" style="display:none"></div>
+
+      <div class="upload-area" style="margin-top:10px" onclick="document.getElementById('csvInput').click()">
+        <div class="upload-icon">📊</div>
+        <div class="upload-text">CSV veya Excel yükle</div>
+        <div class="upload-sub">Yapıkredi, Halkbank desteklenir</div>
+      </div>
+      <input type="file" id="csvInput" accept=".csv,.xlsx,.xls" style="display:none" onchange="importCSV(this)">
+      <div id="csvPreview"></div>
+    </div>
+  </div>
+</div>
+
+<!-- FAB -->
+<div class="fab">
+  <button class="fab-mic" id="micBtn" onclick="toggleVoice()" title="Sesli giriş">🎤</button>
+  <button class="fab-main" onclick="openAddModal()">+ Ekle</button>
+</div>
+
+<!-- Add Transaction Modal -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modalTitle">Yeni Kayıt</div>
+    <div class="type-toggle">
+      <button class="type-btn active expense" id="typeExpense" onclick="setType('expense')">— Gider</button>
+      <button class="type-btn income" id="typeIncome" onclick="setType('income')">+ Gelir</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Açıklama</label>
+      <input class="form-input" id="txName" placeholder="ör. Migros market">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Tutar (₺)</label>
+      <input class="form-input" id="txAmount" type="number" placeholder="0.00" step="0.01">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Kategori</label>
+      <select class="form-select" id="txCat">
+        <option value="Yiyecek">🛒 Yiyecek & Market</option>
+        <option value="Ulaşım">🚌 Ulaşım</option>
+        <option value="Fatura">💡 Fatura & Abonelik</option>
+        <option value="Eğlence">🎬 Eğlence</option>
+        <option value="Sağlık">🏥 Sağlık</option>
+        <option value="Giyim">👕 Giyim</option>
+        <option value="Eğitim">📚 Eğitim</option>
+        <option value="Kira">🏠 Kira</option>
+        <option value="Okul">🎓 Okul Harcaması</option>
+        <option value="Vergi">🧾 Vergi</option>
+        <option value="Diğer">📦 Diğer</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Tarih</label>
+      <input class="form-input" id="txDate" type="date">
+    </div>
+    <button class="submit-btn" onclick="saveTransaction()">Kaydet</button>
+    <button class="cancel-btn" onclick="closeModal('addModal')">İptal</button>
+  </div>
+</div>
+
+<!-- Debt Modal -->
+<div class="modal-overlay" id="debtModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Taksit / Borç Ekle</div>
+    <div class="form-group">
+      <label class="form-label">İsim</label>
+      <input class="form-input" id="debtName" placeholder="ör. Akbank Kredisi">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Toplam Tutar (₺)</label>
+      <input class="form-input" id="debtTotal" type="number" placeholder="0.00">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Aylık Ödeme (₺)</label>
+      <input class="form-input" id="debtMonthly" type="number" placeholder="0.00">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Kalan Taksit Sayısı</label>
+      <input class="form-input" id="debtRemaining" type="number" placeholder="12">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Tür</label>
+      <select class="form-select" id="debtType">
+        <option value="Taksit">💳 Kredi Kartı Taksit</option>
+        <option value="Kredi">🏦 Banka Kredisi</option>
+        <option value="Kira">🏠 Kira</option>
+        <option value="Borç">👤 Kişisel Borç</option>
+      </select>
+    </div>
+    <button class="submit-btn" onclick="saveDebt()">Kaydet</button>
+    <button class="cancel-btn" onclick="closeModal('debtModal')">İptal</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://kyqwlhtasamwothlgxsw.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt5cXdsaHRhc2Ftd290aGxneHN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2MjQzMzAsImV4cCI6MjA5NTIwMDMzMH0.OTDzoJ49G8CF9NkEu5QW6fqIGH-LLt6eE74JLC_a2kA';
+const API_URL = '/.netlify/functions/claude';
+
+let transactions = [];
+let debts = [];
+let currentMonth = new Date().getMonth();
+let currentYear = new Date().getFullYear();
+let currentType = 'expense';
+let recognition = null;
+let isListening = false;
+let dbReady = false;
+
+const catIcons = {
+  'Yiyecek':'🛒','Ulaşım':'🚌','Fatura':'💡','Eğlence':'🎬','Sağlık':'🏥',
+  'Giyim':'👕','Eğitim':'📚','Kira':'🏠','Okul':'🎓','Vergi':'🧾',
+  'Taksit':'💳','Kredi':'🏦','Diğer':'📦','Gelir':'💰'
+};
+const catColors = {
+  'Yiyecek':'#22c55e','Ulaşım':'#3b82f6','Fatura':'#f59e0b','Eğlence':'#a855f7',
+  'Sağlık':'#06b6d4','Giyim':'#f97316','Eğitim':'#10b981','Kira':'#8b5cf6',
+  'Okul':'#14b8a6','Vergi':'#6b7280','Diğer':'#9ca3af','Gelir':'#22c55e'
+};
+
+// Supabase
+async function sbFetch(path, method='GET', body=null) {
+  const opts = {
+    method,
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': method === 'POST' ? 'return=minimal' : ''
+    }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(SUPABASE_URL + path, opts);
+  if (method === 'GET') return r.json();
+  return r;
+}
+
+async function initDB() {
+  try {
+    await sbFetch('/rest/v1/transactions?limit=1');
+    dbReady = true;
+  } catch(e) {
+    dbReady = false;
+  }
+  await loadData();
+}
+
+async function loadData() {
+  if (dbReady) {
+    try {
+      transactions = await sbFetch('/rest/v1/transactions?order=date.desc&select=*') || [];
+      debts = await sbFetch('/rest/v1/debts?order=created_at.desc&select=*') || [];
+      if (!Array.isArray(transactions)) transactions = [];
+      if (!Array.isArray(debts)) debts = [];
+    } catch(e) {
+      transactions = JSON.parse(localStorage.getItem('ft_tx') || '[]');
+      debts = JSON.parse(localStorage.getItem('ft_debts') || '[]');
+    }
+  } else {
+    transactions = JSON.parse(localStorage.getItem('ft_tx') || '[]');
+    debts = JSON.parse(localStorage.getItem('ft_debts') || '[]');
+  }
+  render();
+}
+
+async function saveTx(tx) {
+  if (dbReady) {
+    try {
+      await sbFetch('/rest/v1/transactions', 'POST', tx);
+    } catch(e) {}
+  }
+  const local = JSON.parse(localStorage.getItem('ft_tx') || '[]');
+  local.unshift(tx);
+  localStorage.setItem('ft_tx', JSON.stringify(local));
+}
+
+async function deleteTx(id) {
+  if (dbReady) {
+    try { await sbFetch(`/rest/v1/transactions?id=eq.${id}`, 'DELETE'); } catch(e) {}
+  }
+  const local = JSON.parse(localStorage.getItem('ft_tx') || '[]');
+  localStorage.setItem('ft_tx', JSON.stringify(local.filter(t => t.id !== id)));
+  transactions = transactions.filter(t => t.id !== id);
+  render();
+}
+
+async function saveDebtDB(d) {
+  if (dbReady) {
+    try { await sbFetch('/rest/v1/debts', 'POST', d); } catch(e) {}
+  }
+  const local = JSON.parse(localStorage.getItem('ft_debts') || '[]');
+  local.unshift(d);
+  localStorage.setItem('ft_debts', JSON.stringify(local));
+}
+
+// Month
+function changeMonth(dir) {
+  currentMonth += dir;
+  if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+  if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+  render();
+}
+
+const months = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+
+function getMonthTx() {
+  return transactions.filter(t => {
+    const d = new Date(t.date);
+    return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+  });
+}
+
+function fmt(n) { return '₺' + Math.abs(n).toLocaleString('tr-TR', {minimumFractionDigits:0, maximumFractionDigits:0}); }
+
+// Render
+function render() {
+  document.getElementById('monthLabel').textContent = months[currentMonth] + ' ' + currentYear;
+  const mtx = getMonthTx();
+  const income = mtx.filter(t => t.type === 'income').reduce((s,t) => s + t.amount, 0);
+  const expense = mtx.filter(t => t.type === 'expense').reduce((s,t) => s + t.amount, 0);
+  const net = income - expense;
+  const netEl = document.getElementById('netBalance');
+  netEl.textContent = (net >= 0 ? '' : '-') + fmt(net);
+  netEl.className = 'balance-amount ' + (net >= 0 ? 'positive' : 'negative');
+  document.getElementById('totalIncome').textContent = fmt(income);
+  document.getElementById('totalExpense').textContent = fmt(expense);
+  renderTx(mtx);
+  renderDebts();
+  renderCharts(mtx, income, expense);
+}
+
+function renderTx(mtx) {
+  const el = document.getElementById('txList');
+  if (!mtx.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Bu ay kayıt yok</div></div>';
+    return;
+  }
+  const grouped = {};
+  mtx.forEach(t => {
+    const d = new Date(t.date).toLocaleDateString('tr-TR', {day:'numeric',month:'long'});
+    if (!grouped[d]) grouped[d] = [];
+    grouped[d].push(t);
+  });
+  el.innerHTML = Object.entries(grouped).map(([date, txs]) => `
+    <div class="tx-group">
+      <div class="tx-date">${date}</div>
+      ${txs.map(t => `
+        <div class="tx-item">
+          <div class="tx-icon cat-${t.category?.toLowerCase().replace(/[^a-z]/g,'')||'diger'}">${catIcons[t.category]||'📦'}</div>
+          <div class="tx-info">
+            <div class="tx-name">${t.name}</div>
+            <div class="tx-cat">${t.category}</div>
+          </div>
+          <div class="tx-amount ${t.type}">${t.type==='income'?'+':'-'}${fmt(t.amount)}</div>
+          <button class="tx-del" onclick="deleteTx('${t.id}')">×</button>
+        </div>`).join('')}
+    </div>`).join('');
+}
+
+function renderDebts() {
+  const el = document.getElementById('debtList');
+  if (!debts.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">✅</div><div class="empty-text">Taksit veya borç yok</div></div>';
+    return;
+  }
+  el.innerHTML = debts.map(d => {
+    const paid = d.total - (d.monthly * d.remaining);
+    const pct = Math.min(100, Math.max(0, (paid/d.total)*100));
+    const colors = {'Taksit':'var(--red)','Kredi':'var(--blue)','Kira':'var(--purple)','Borç':'var(--amber)'};
+    const col = colors[d.dtype] || 'var(--accent)';
+    return `<div class="debt-card">
+      <div class="debt-header">
+        <div class="debt-name">${d.name}</div>
+        <span class="debt-badge" style="background:${col}22;color:${col}">${d.dtype}</span>
+      </div>
+      <div class="debt-progress"><div class="debt-prog-fill" style="width:${pct}%;background:${col}"></div></div>
+      <div class="debt-meta">
+        <span>Aylık: ${fmt(d.monthly)}</span>
+        <span>Kalan: ${d.remaining} taksit</span>
+        <span>Toplam: ${fmt(d.total)}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderCharts(mtx, income, expense) {
+  // Stats
+  const sg = document.getElementById('statsGrid');
+  const avgDaily = expense / new Date(currentYear, currentMonth+1, 0).getDate();
+  const txCount = mtx.length;
+  sg.innerHTML = `
+    <div class="stat-card"><div class="stat-label">Günlük Ort.</div><div class="stat-val">${fmt(avgDaily)}</div></div>
+    <div class="stat-card"><div class="stat-label">İşlem Sayısı</div><div class="stat-val">${txCount}</div></div>
+    <div class="stat-card"><div class="stat-label">Tasarruf Oranı</div><div class="stat-val">${income>0?Math.round(((income-expense)/income)*100):0}%</div></div>
+    <div class="stat-card"><div class="stat-label">En Yüksek</div><div class="stat-val">${mtx.filter(t=>t.type==='expense').length?fmt(Math.max(...mtx.filter(t=>t.type==='expense').map(t=>t.amount))):'₺0'}</div></div>`;
+
+  // Category bars
+  const cats = {};
+  mtx.filter(t => t.type==='expense').forEach(t => { cats[t.category] = (cats[t.category]||0) + t.amount; });
+  const maxCat = Math.max(...Object.values(cats), 1);
+  document.getElementById('catBars').innerHTML = Object.entries(cats).sort((a,b)=>b[1]-a[1]).slice(0,7).map(([cat,val]) => `
+    <div class="bar-row">
+      <div class="bar-label">${cat}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(val/maxCat)*100}%;background:${catColors[cat]||'#888'}"></div></div>
+      <div class="bar-val">${fmt(val)}</div>
+    </div>`).join('') || '<div style="color:var(--text3);font-size:13px;text-align:center;padding:16px">Veri yok</div>';
+
+  // Month bars
+  const monthData = [];
+  for (let i=5; i>=0; i--) {
+    let m = currentMonth - i; let y = currentYear;
+    if (m < 0) { m += 12; y--; }
+    const mTx = transactions.filter(t => { const d=new Date(t.date); return d.getMonth()===m && d.getFullYear()===y && t.type==='expense'; });
+    monthData.push({ label: months[m].slice(0,3), val: mTx.reduce((s,t)=>s+t.amount,0) });
+  }
+  const maxM = Math.max(...monthData.map(m=>m.val), 1);
+  document.getElementById('monthBars').innerHTML = monthData.map(m => `
+    <div class="bar-row">
+      <div class="bar-label">${m.label}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(m.val/maxM)*100}%;background:var(--accent)"></div></div>
+      <div class="bar-val">${fmt(m.val)}</div>
+    </div>`).join('');
+}
+
+// Tabs
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  ['transactions','debts','charts','ai','import'].forEach(t => {
+    document.getElementById('tab-'+t).style.display = t===tab ? 'block' : 'none';
+  });
+}
+
+// Modal
+function openAddModal(prefill={}) {
+  document.getElementById('txName').value = prefill.name || '';
+  document.getElementById('txAmount').value = prefill.amount || '';
+  document.getElementById('txDate').value = new Date().toISOString().split('T')[0];
+  if (prefill.category) document.getElementById('txCat').value = prefill.category;
+  setType(prefill.type || 'expense');
+  document.getElementById('addModal').classList.add('open');
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function setType(t) {
+  currentType = t;
+  document.getElementById('typeExpense').className = 'type-btn expense' + (t==='expense'?' active':'');
+  document.getElementById('typeIncome').className = 'type-btn income' + (t==='income'?' active':'');
+}
+
+async function saveTransaction() {
+  const name = document.getElementById('txName').value.trim();
+  const amount = parseFloat(document.getElementById('txAmount').value);
+  const cat = document.getElementById('txCat').value;
+  const date = document.getElementById('txDate').value;
+  if (!name || isNaN(amount) || amount <= 0) { showToast('Lütfen tüm alanları doldur'); return; }
+  const tx = { id: Date.now().toString(), name, amount, category: cat, type: currentType, date };
+  await saveTx(tx);
+  transactions.unshift(tx);
+  closeModal('addModal');
+  render();
+  showToast('Kaydedildi ✓');
+}
+
+function openDebtModal() { document.getElementById('debtModal').classList.add('open'); }
+
+async function saveDebt() {
+  const d = {
+    id: Date.now().toString(),
+    name: document.getElementById('debtName').value.trim(),
+    total: parseFloat(document.getElementById('debtTotal').value),
+    monthly: parseFloat(document.getElementById('debtMonthly').value),
+    remaining: parseInt(document.getElementById('debtRemaining').value),
+    dtype: document.getElementById('debtType').value,
+    created_at: new Date().toISOString()
+  };
+  if (!d.name || isNaN(d.total)) { showToast('Lütfen alanları doldur'); return; }
+  await saveDebtDB(d);
+  debts.unshift(d);
+  closeModal('debtModal');
+  renderDebts();
+  showToast('Taksit eklendi ✓');
+}
+
+// Voice
+function toggleVoice() {
+  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+    showToast('Tarayıcınız ses tanımayı desteklemiyor'); return;
+  }
+  if (isListening) { recognition?.stop(); return; }
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SR();
+  recognition.lang = 'tr-TR';
+  recognition.continuous = false;
+  recognition.interimResults = false;
+  recognition.onstart = () => {
+    isListening = true;
+    document.getElementById('micBtn').classList.add('listening');
+    document.getElementById('voiceStatus').classList.add('active');
+  };
+  recognition.onresult = (e) => {
+    const text = e.results[0][0].transcript;
+    document.getElementById('voiceText').textContent = '"' + text + '"';
+    parseVoice(text);
+  };
+  recognition.onend = () => {
+    isListening = false;
+    document.getElementById('micBtn').classList.remove('listening');
+    setTimeout(() => document.getElementById('voiceStatus').classList.remove('active'), 2000);
+  };
+  recognition.onerror = () => {
+    isListening = false;
+    document.getElementById('micBtn').classList.remove('listening');
+    document.getElementById('voiceStatus').classList.remove('active');
+    showToast('Ses tanıma hatası');
+  };
+  recognition.start();
+}
+
+function parseVoice(text) {
+  const lower = text.toLowerCase();
+  const amountMatch = lower.match(/(\d+[\.,]?\d*)\s*lira/);
+  const amount = amountMatch ? parseFloat(amountMatch[1].replace(',','.')) : null;
+  const isIncome = /gelir|maaş|kira geliri|kazandım|aldım/.test(lower);
+  const catMap = {
+    'market|migros|carrefour|a101|bim|şok|yiyecek|gıda|restoran|yemek|kahve': 'Yiyecek',
+    'benzin|akaryakıt|taksi|uber|metro|otobüs|ulaşım': 'Ulaşım',
+    'elektrik|su|doğalgaz|internet|fatura|abonelik': 'Fatura',
+    'kira': isIncome ? 'Gelir' : 'Kira',
+    'okul|öğrenci|harç|dershane': 'Okul',
+    'vergi|kdv|sgk': 'Vergi',
+    'sinema|eğlence|oyun': 'Eğlence',
+    'doktor|ilaç|eczane|sağlık': 'Sağlık',
+    'giyim|kıyafet|ayakkabı': 'Giyim',
+  };
+  let cat = 'Diğer';
+  for (const [pattern, c] of Object.entries(catMap)) {
+    if (new RegExp(pattern).test(lower)) { cat = c; break; }
+  }
+  const cleanName = text.replace(/(\d+[\.,]?\d*\s*lira)/gi, '').replace(/ekle|giriş|harcama|gider|gelir/gi,'').trim() || text;
+  openAddModal({ name: cleanName, amount: amount || '', category: cat, type: isIncome ? 'income' : 'expense' });
+}
+
+// Receipt scan
+async function scanReceipt(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const resultEl = document.getElementById('scanResult');
+  resultEl.style.display = 'block';
+  resultEl.textContent = 'Fiş okunuyor...';
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const base64 = e.target.result.split(',')[1];
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 500,
+          messages: [{
+            role: 'user',
+            content: [
+              { type: 'image', source: { type: 'base64', media_type: file.type, data: base64 } },
+              { type: 'text', text: 'Bu fişten/faturadan şu bilgileri çıkar ve SADECE JSON döndür (başka bir şey yazma): {"name": "mağaza/açıklama", "amount": tutar_sayı, "category": "Yiyecek/Ulaşım/Fatura/Eğlence/Sağlık/Giyim/Diğer", "date": "YYYY-MM-DD"}' }
+            ]
+          }]
+        })
+      });
+      const data = await res.json();
+      const text = data.content?.[0]?.text || '';
+      const clean = text.replace(/```json|```/g,'').trim();
+      const parsed = JSON.parse(clean);
+      resultEl.textContent = `✓ Bulundu: ${parsed.name} — ₺${parsed.amount} (${parsed.category})`;
+      setTimeout(() => openAddModal({ ...parsed, type: 'expense' }), 500);
+    } catch(e) {
+      resultEl.textContent = 'Fiş okunamadı. Lütfen tekrar deneyin.';
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+// CSV Import
+async function importCSV(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const text = await file.text();
+  const lines = text.split('\n').filter(l => l.trim());
+  const preview = document.getElementById('csvPreview');
+
+  // Try to parse Yapıkredi / Halkbank format
+  const parsed = [];
+  lines.slice(1).forEach(line => {
+    const cols = line.split(/[,;	]/);
+    if (cols.length < 3) return;
+    // Try to find date, description, amount
+    let date = '', name = '', amount = 0;
+    cols.forEach((c, i) => {
+      const clean = c.trim().replace(/"/g,'');
+      if (/\d{2}[.\/]\d{2}[.\/]\d{4}/.test(clean)) {
+        const parts = clean.split(/[.\/]/);
+        date = `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
+      } else if (!isNaN(parseFloat(clean.replace(',','.')))) {
+        const n = parseFloat(clean.replace(',','.').replace(/\./g,'').replace(',','.'));
+        if (Math.abs(n) > amount) amount = Math.abs(n);
+      } else if (clean.length > 3 && !name) {
+        name = clean;
+      }
+    });
+    if (name && amount > 0 && date) parsed.push({ id: Date.now()+Math.random(), name, amount, date, category: guessCategory(name), type: 'expense' });
+  });
+
+  if (!parsed.length) {
+    preview.innerHTML = '<div style="color:var(--text3);font-size:13px;padding:12px">Format tanınamadı. Lütfen Yapıkredi veya Halkbank Excel dosyası yükleyin.</div>';
+    return;
+  }
+
+  preview.innerHTML = `<div class="section-title" style="margin-top:16px">${parsed.length} hareket bulundu</div>
+    <div class="csv-result">${parsed.slice(0,20).map((t,i) => `
+      <div class="csv-row">
+        <div class="csv-check checked" onclick="this.classList.toggle('checked')" data-idx="${i}">✓</div>
+        <div style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.name}</div>
+        <div style="font-family:'DM Mono',monospace;font-size:12px;flex-shrink:0">${fmt(t.amount)}</div>
+      </div>`).join('')}
+    </div>
+    <button class="submit-btn" style="margin-top:12px" onclick="importSelected(${JSON.stringify(parsed).replace(/"/g,'&quot;')})">Seçilenleri İçe Aktar</button>`;
+}
+
+function guessCategory(name) {
+  const n = name.toUpperCase();
+  if (/MİGROS|MARKET|BİM|A101|ŞOK|CARREFOUR|GIDA/.test(n)) return 'Yiyecek';
+  if (/SHELL|BP|OPET|TOTAL|AKARYAKIT|TAXI|UBER/.test(n)) return 'Ulaşım';
+  if (/ELEKTRIK|SU|DOGALGAZ|TURKCELL|VODAFONE|TURK TELEKOM/.test(n)) return 'Fatura';
+  if (/OKUL|ÜNIVERSITE|HARÇ|DERSHANE/.test(n)) return 'Okul';
+  if (/ECZANE|DOKTOR|HASTANEt/.test(n)) return 'Sağlık';
+  if (/ZARA|H&M|LC WAIKIKI|GİYİM/.test(n)) return 'Giyim';
+  return 'Diğer';
+}
+
+async function importSelected(parsed) {
+  const checks = document.querySelectorAll('.csv-check.checked');
+  const indices = [...checks].map(c => parseInt(c.dataset.idx));
+  let count = 0;
+  for (const i of indices) {
+    const t = parsed[i];
+    if (!t) continue;
+    t.id = Date.now().toString() + count;
+    await saveTx(t);
+    transactions.unshift(t);
+    count++;
+  }
+  render();
+  document.getElementById('csvPreview').innerHTML = '';
+  showToast(`${count} hareket içe aktarıldı ✓`);
+}
+
+// AI
+async function sendAI() {
+  const input = document.getElementById('aiInput');
+  const q = input.value.trim();
+  if (!q) return;
+  const msgs = document.getElementById('aiMessages');
+  msgs.innerHTML += `<div class="ai-msg user">${q}</div>`;
+  msgs.innerHTML += `<div class="ai-msg assistant loading" id="aiLoading">Analiz ediyorum...</div>`;
+  msgs.scrollTop = msgs.scrollHeight;
+  input.value = '';
+
+  const mtx = getMonthTx();
+  const income = mtx.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+  const expense = mtx.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+  const cats = {};
+  mtx.forEach(t => { if(t.type==='expense') cats[t.category]=(cats[t.category]||0)+t.amount; });
+  const debtSummary = debts.map(d=>`${d.name}: aylık ${fmt(d.monthly)}, ${d.remaining} taksit kaldı`).join('; ');
+
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: `Sen kişisel finans asistanısın. Türkçe, kısa ve pratik yanıtlar ver. Emoji kullanabilirsin. 
+${months[currentMonth]} ${currentYear} verileri: Gelir: ${fmt(income)}, Gider: ${fmt(expense)}, Net: ${fmt(income-expense)}.
+Kategoriler: ${Object.entries(cats).map(([k,v])=>`${k}: ${fmt(v)}`).join(', ')}.
+Taksitler: ${debtSummary || 'Yok'}.
+İşlem sayısı: ${mtx.length}.`,
+        messages: [{ role: 'user', content: q }]
+      })
+    });
+    const data = await res.json();
+    document.getElementById('aiLoading').remove();
+    msgs.innerHTML += `<div class="ai-msg assistant">${(data.content?.[0]?.text||'Yanıt alınamadı.').replace(/\n/g,'<br>')}</div>`;
+    msgs.scrollTop = msgs.scrollHeight;
+  } catch(e) {
+    document.getElementById('aiLoading').remove();
+    msgs.innerHTML += `<div class="ai-msg assistant">Bağlantı hatası. İnternet bağlantını kontrol et.</div>`;
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// PDF Import
+async function importPDF(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const statusEl = document.getElementById('pdfStatus');
+  statusEl.style.display = 'block';
+  statusEl.textContent = 'PDF okunuyor, lütfen bekle...';
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const base64 = e.target.result.split(',')[1];
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 4000,
+          messages: [{
+            role: 'user',
+            content: [
+              { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64 } },
+              { type: 'text', text: `Bu banka ekstresindeki tüm hareketleri çıkar. SADECE geçerli JSON döndür, başka hiçbir şey yazma:
+{"transactions": [{"name": "açıklama", "amount": tutar_sayı, "date": "YYYY-MM-DD", "type": "expense veya income", "category": "Yiyecek/Ulaşım/Fatura/Eğlence/Sağlık/Giyim/Kira/Okul/Vergi/Diğer"}]}
+Kategorileri belirlerken: market/gıda=Yiyecek, akaryakıt/taksi=Ulaşım, elektrik/su/telefon=Fatura, kira=Kira, okul/harç=Okul, vergi/sgk=Vergi. Gelir işlemleri (maaş, havale alınan) type=income. Tutarları pozitif yaz.` }
+            ]
+          }]
+        })
+      });
+      const data = await res.json();
+      const text = data.content?.[0]?.text || '';
+      const clean = text.replace(/```json|```/g,'').trim();
+      const parsed = JSON.parse(clean);
+      const txList = parsed.transactions || [];
+      if (!txList.length) { statusEl.textContent = "PDF'den hareket çıkarılamadı."; return; }
+      statusEl.textContent = `${txList.length} hareket bulundu, kaydediliyor...`;
+      let count = 0;
+      for (const t of txList) {
+        const tx = { id: Date.now().toString() + count++, name: t.name, amount: Math.abs(t.amount), category: t.category||'Diğer', type: t.type||'expense', date: t.date };
+        await saveTx(tx);
+        transactions.unshift(tx);
+      }
+      render();
+      statusEl.textContent = `✓ ${count} hareket başarıyla içe aktarıldı!`;
+      showToast(`${count} hareket eklendi ✓`);
+    } catch(err) {
+      statusEl.textContent = 'PDF okunamadı. İnternet bağlantını kontrol et.';
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if(e.target === el) el.classList.remove('open'); });
+});
+
+// Init
+document.getElementById('txDate') && (document.getElementById('txDate').value = new Date().toISOString().split('T')[0]);
+initDB();
+</script>
+</body>
+</html>
